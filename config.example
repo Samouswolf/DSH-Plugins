@@ -1,0 +1,25 @@
+# DSH 插件环境变量配置模板
+# 复制为 config.local 或设置到你的运行环境。
+# ⚠️ 不要提交真实 key 到仓库。
+
+# ── DNA 记忆系统 ─────────────────────────────
+DNA_MEMORY_DIR=~/.dna            # 记忆库目录
+DNA_CODE_ROOT=<dna_system 代码根> # 记忆核心代码路径
+DNA_BRIDGE=<工作区>/dna_bridge/bridge.py
+DNA_DEBATE=<工作区>/dna_bridge/debate.py
+DNA_SYNC=<工作区>/dna_bridge/sync.py
+DNA_IDENTITY_NAMES=               # 身份记忆关键词（逗号分隔，可选）
+
+# MOA 辩证（debate.py）需要 DeepSeek 凭证，二选一：
+DEEPSEEK_API_KEY=                 # 直给
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+
+# ── Agent 农场 ──────────────────────────────
+AGNES_API_KEY=                    # Agnes 云 API（对话/生图/生视频）
+OPENCODE_API_KEY=                 # Opencode 中转（Claude/Codex 默认模型通道）
+CB_CLI=                           # WorkBuddy codebuddy CLI（可留空走默认）
+HERMES_VENV_PY=                   # Hermes venv python（可留空走默认）
+HERMES_ENV=~/.hermes/.env         # Hermes .env 位置
+
+# ── 进化引擎 ───────────────────────────────
+EVO_SKILLS_DIR=<工作区>/.skills   # 技能落盘目录（会被 skill-filesystem 扫描）

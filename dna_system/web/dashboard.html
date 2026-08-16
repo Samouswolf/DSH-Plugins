@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNA-Strand | 太空驾驶舱</title>
+<style>
+/* ============================================
+   太空驾驶舱风格 — Space Cockpit HUD
+   ============================================ */
+
+:root {
+  --bg-deep: #0a0a1a;
+  --bg-panel: rgba(10, 15, 30, 0.92);
+  --bg-card: rgba(15, 20, 40, 0.88);
+  --bg-card-hover: rgba(20, 30, 55, 0.95);
+  --border: rgba(0, 200, 255, 0.12);
+  --border-glow: rgba(0, 200, 255, 0.25);
+  --cyan: #00d4ff;
+  --cyan-dim: rgba(0, 212, 255, 0.3);
+  --green: #00ff88;
+  --green-dim: rgba(0, 255, 136, 0.3);
+  --pink: #ff00aa;
+  --pink-dim: rgba(255, 0, 170, 0.3);
+  --yellow: #ffbb00;
+  --red: #ff4444;
+  --text: #e0e8f0;
+  --text-dim: #6a7a9a;
+  --text-muted: #4a5a7a;
+  --font: 'Consolas', 'SF Mono', 'Fira Code', monospace;
+  --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+  --glow-green: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── 太空背景 ──────────────────────────── */
+.space-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    /* 星空网格 */
+    repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(0, 200, 255, 0.02) 49px, rgba(0, 200, 255, 0.02) 50px),
+    repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(0, 200, 255, 0.02) 49px, rgba(0, 200, 255, 0.02) 50px),
+    /* 星云光晕 */
+    radial-gradient(ellipse 600px 400px at 20% 30%, rgba(0, 100, 255, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 350px at 80% 70%, rgba(136, 0, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(0, 200, 255, 0.04) 0%, transparent 60%),
+    /* 深空底色 */
+    linear-gradient(180deg, #0a0a1a 0%, #0d0d2a 50%, #0a0a1a 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 扫描线效果 */
+.scanline {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 200, 255, 0.008) 2px,
+    rgba(0, 200, 255, 0.008) 4px
+  );
+}
+
+/* ─── 顶部HUD状态栏 ────────────────────── */
+.hud-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: rgba(8, 10, 20, 0.95);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 0 30px rgba(0, 200, 255, 0.03);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+
+/* HUD顶部发光线 */
+.hud-top::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 200, 255, 0.3) 20%,
+    rgba(0, 200, 255, 0.6) 50%,
+    rgba(0, 200, 255, 0.3) 80%,
+    transparent 100%);
+  animation: hudScan 4s ease-in-out infinite;
+}
+
+@keyframes hudScan {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.hud-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-logo-icon {
+  font-size: 20px;
+  color: var(--cyan);
+  text-shadow: var(--glow-cyan);
+}
+
+.hud-logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-shadow: var(--glow-cyan);
+}
+
+.hud-logo-version {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 8px;
+  padding: 2px 6px;
+  border: 1px solid rgba(0, 200, 255, 0.15);
+  border-radius: 3px;
+}
+
+.hud-divider {
+  width: 1px;
+  height: 24px;
+  margin: 0 16px;
+  background: linear-gradient(180deg, transparent, rgba(0, 200, 255, 0.2), transparent);
+}
+
+.hud-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.hud-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 10px rgba(255, 187, 0, 0.6);
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(0, 255, 136, 0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 15px rgba(0, 255, 136, 0.8); }
+}
+
+.hud-status-text {
+  font-size: 11px;
+  color: var(--green);
+  letter-spacing: 1px;
+}
+
+.hud-time {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-left: 16px;
+}
+
+/* ─── 底部HUD状态栏 ────────────────────── */
+.hud-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: rgba(8, 10, 20, 0.95);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.hud-bottom::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 255, 136, 0.2) 20%,
+    rgba(0, 200, 255, 0.3) 50%,
+    rgba(255, 0, 170, 0.2) 80%,
+    transparent 100%);
+}
+
+.hud-bottom-left,
+.hud-bottom-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hud-bottom span {
+  color: var(--cyan);
+}
+
+/* ─── 主容器 ────────────────────────────── */
+.container {
+  position: relative;
+  z-index: 2;
+  margin: 60px 20px 44px 20px;
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  min-height: calc(100vh - 104px);
+}
+
+/* ─── HUD面板 ───────────────────────────── */
+.hud-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.hud-panel:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 25px rgba(0, 200, 255, 0.05);
+}
+
+/* 面板角落装饰 */
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 12px;
+  height: 12px;
+  border-top: 1.5px solid rgba(0, 200, 255, 0.2);
+  border-left: 1.5px solid rgba(0, 200, 255, 0.2);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 1.5px solid rgba(0, 200, 255, 0.2);
+  border-right: 1.5px solid rgba(0, 200, 255, 0.2);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.06);
+  background: rgba(0, 200, 255, 0.02);
+}
+
+.panel-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title .icon {
+  color: var(--cyan);
+  text-shadow: var(--glow-cyan);
+}
+
+.panel-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  border-radius: 4px;
+  color: var(--cyan);
+}
+
+.panel-body {
+  padding: 16px;
+}
+
+/* ─── 左侧：统计卡片 ────────────────────── */
+.stats-panel {
+  grid-row: 1 / 3;
+}
+
+.stat-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 200, 255, 0.08);
+  border-radius: 6px;
+  padding: 14px;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  background: rgba(0, 200, 255, 0.03);
+  border-color: rgba(0, 200, 255, 0.15);
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: var(--glow-cyan);
+  line-height: 1;
+}
+
+.stat-value.green { color: var(--green); text-shadow: var(--glow-green); }
+.stat-value.pink { color: var(--pink); text-shadow: 0 0 20px var(--pink-dim); }
+.stat-value.yellow { color: var(--yellow); text-shadow: 0 0 20px rgba(255, 187, 0, 0.3); }
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* Token节省面板样式 */
+.token-card {
+  background: rgba(0, 255, 136, 0.03);
+  border-color: rgba(0, 255, 136, 0.1);
+}
+
+.token-card:hover {
+  background: rgba(0, 255, 136, 0.06);
+  border-color: rgba(0, 255, 136, 0.2);
+}
+
+.change-indicator {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.recent-hits-container {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 200, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.recent-hits-header {
+  padding: 8px 12px;
+  background: rgba(0, 200, 255, 0.03);
+  border-bottom: 1px solid rgba(0, 200, 255, 0.08);
+}
+
+.recent-hits-title {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.recent-hits-list {
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.recent-hit-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.03);
+  transition: background 0.2s;
+}
+
+.recent-hit-item:hover {
+  background: rgba(0, 200, 255, 0.03);
+}
+
+.recent-hit-item:last-child {
+  border-bottom: none;
+}
+
+.hit-query {
+  font-size: 11px;
+  color: var(--text);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hit-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+}
+
+.hit-count {
+  color: var(--cyan);
+}
+
+.hit-tokens {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* 健康度进度条 */
+.health-bar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.health-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* ─── 中间：神经元扭力图 ──────────────────── */
+.neuron-panel {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  min-height: 500px;
+}
+
+.neuron-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 450px;
+}
+
+.neuron-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.neuron-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(10, 15, 30, 0.95);
+  border: 1px solid var(--border-glow);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), var(--glow-cyan);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.5;
+}
+
+.neuron-tooltip.visible {
+  opacity: 1;
+}
+
+.tooltip-name {
+  color: var(--cyan);
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.tooltip-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.tooltip-stat span {
+  color: var(--cyan);
+}
+
+.tooltip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.tooltip-tag {
+  font-size: 9px;
+  padding: 2px 6px;
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.15);
+  border-radius: 3px;
+  color: var(--cyan);
+}
+
+/* ─── 右侧：查询和列表 ──────────────────── */
+.right-panel {
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 查询框 */
+.query-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.query-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.query-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 15px rgba(0, 200, 255, 0.15);
+}
+
+.query-input::placeholder {
+  color: var(--text-muted);
+}
+
+.query-btn {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.15), rgba(0, 200, 255, 0.08));
+  border: 1px solid rgba(0, 200, 255, 0.25);
+  border-radius: 6px;
+  padding: 10px 16px;
+  color: var(--cyan);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.query-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.25), rgba(0, 200, 255, 0.15));
+  transform: translateY(-1px);
+}
+
+/* 结果列表 */
+.result-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.result-item {
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.result-item:hover {
+  background: rgba(0, 200, 255, 0.05);
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.result-type {
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.result-type.pattern {
+  background: rgba(255, 0, 170, 0.15);
+  color: var(--pink);
+  border: 1px solid rgba(255, 0, 170, 0.25);
+}
+
+.result-type.data {
+  background: rgba(0, 200, 255, 0.15);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 200, 255, 0.25);
+}
+
+.result-id {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.result-content {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* DNA列表 */
+.dna-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dna-item {
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+  transition: background 0.2s;
+}
+
+.dna-item:hover {
+  background: rgba(0, 200, 255, 0.05);
+}
+
+.dna-item:last-child {
+  border-bottom: none;
+}
+
+.dna-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.dna-id {
+  font-size: 10px;
+  color: var(--cyan);
+}
+
+.dna-lifetime {
+  font-size: 10px;
+  color: var(--green);
+}
+
+.dna-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.dna-tag {
+  font-size: 9px;
+  padding: 1px 5px;
+  background: rgba(0, 200, 255, 0.08);
+  border: 1px solid rgba(0, 200, 255, 0.12);
+  border-radius: 3px;
+  color: var(--cyan);
+}
+
+.dna-preview {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ─── 图例 ──────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0, 200, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ─── 动画 ──────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ─── 滚动条 ────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 200, 255, 0.15);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 200, 255, 0.3);
+}
+
+
+/* ─── 响应式 ────────────────────────────── */
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .stats-panel { grid-row: auto; }
+  .neuron-panel { grid-column: 1; grid-row: auto; min-height: 400px; }
+  .right-panel { grid-row: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="space-bg"></div>
+<div class="scanline"></div>
+
+<!-- 顶部HUD -->
+<div class="hud-top">
+  <div class="hud-logo">
+    <span class="hud-logo-icon">[DNA]</span>
+    <span class="hud-logo-text">DNA-STRAND</span>
+    <span class="hud-logo-version">v3.0</span>
+  </div>
+  <div class="hud-tabs" id="hudTabs">
+  </div>
+  <div class="hud-divider"></div>
+  <div class="hud-status">
+    <span class="hud-status-dot" id="statusDot"></span>
+    <span class="hud-status-text" id="statusText">WAITING FOR SERVER...</span>
+  </div>
+  <div class="hud-time" id="hudTime">--:--:--</div>
+</div>
+
+<!-- ═══ DNA驾驶舱 Deck ═══ -->
+<div class="deck active" id="deck-dna">
+
+<!-- 主容器 -->
+<div class="container">
+
+  <!-- 左侧：统计面板 -->
+  <div class="hud-panel stats-panel fade-in">
+    <div class="panel-header">
+      <span class="panel-title"><span class="icon">[SYS]</span> 系统状态</span>
+    </div>
+    <div class="panel-body">
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-label">DNA 神经元</div>
+          <div class="stat-value" id="dnaCount">--</div>
+          <div class="stat-sub" id="dnaChange"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">洞察模式</div>
+          <div class="stat-value green" id="patternCount">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">存储矩阵</div>
+          <div class="stat-value pink" id="storageSize">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">系统健康度</div>
+          <div class="stat-value yellow" id="healthScore">--%</div>
+          <div class="health-bar">
+            <div class="health-fill" id="healthBar" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">向量引擎</div>
+          <div class="stat-value" id="vectorEngine" style="font-size: 16px;">--</div>
+          <div class="stat-sub">索引: <span id="indexSize">--</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">启动耗时</div>
+          <div class="stat-value" id="bootTime" style="font-size: 20px;">--</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Token节省面板 - 实时追踪 -->
+  <div class="hud-panel fade-in" style="grid-column: span 2;">
+    <div class="panel-header">
+      <span class="panel-title"><span class="icon">[TOKEN]</span> Token 节省 · 实时追踪</span>
+      <span class="panel-badge" id="tokenTrackerStatus">初始化中...</span>
+    </div>
+    <div class="panel-body">
+      <!-- 总计统计 -->
+      <div class="stat-cards" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 12px;">
+        <div class="stat-card token-card">
+          <div class="stat-label">累计节省</div>
+          <div class="stat-value green" id="totalSavedTokens">--</div>
+          <div class="stat-sub">tokens</div>
+        </div>
+        <div class="stat-card token-card">
+          <div class="stat-label">总查询次数</div>
+          <div class="stat-value cyan" id="totalQueries">--</div>
+          <div class="stat-sub">次</div>
+        </div>
+        <div class="stat-card token-card">
+          <div class="stat-label">总命中次数</div>
+          <div class="stat-value pink" id="totalHits">--</div>
+          <div class="stat-sub">次</div>
+        </div>
+        <div class="stat-card token-card">
+          <div class="stat-label">平均每次节省</div>
+          <div class="stat-value yellow" id="avgTokensPerQuery">--</div>
+          <div class="stat-sub">tokens/查询</div>
+        </div>
+      </div>
+
+      <!-- 今日统计 -->
+      <div class="stat-cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 12px;">
+        <div class="stat-card token-card">
+          <div class="stat-label">今日节省</div>
+          <div class="stat-value green" id="todaySavedTokens">--</div>
+          <div class="stat-sub">tokens <span id="tokenChange" class="change-indicator">--</span></div>
+        </div>
+        <div class="stat-card token-card">
+          <div class="stat-label">今日查询</div>
+          <div class="stat-value cyan" id="todayQueries">--</div>
+          <div class="stat-sub">次 <span id="queryChange" class="change-indicator">--</span></div>
+        </div>
+        <div class="stat-card token-card">
+          <div class="stat-label">今日命中</div>
+          <div class="stat-value pink" id="todayHits">--</div>
+          <div class="stat-sub">次 <span id="hitChange" class="change-indicator">--</span></div>
+        </div>
+      </div>
+
+      <!-- 最近命中记录 -->
+      <div class="recent-hits-container">
+        <div class="recent-hits-header">
+          <span class="recent-hits-title">最近命中记录</span>
+        </div>
+        <div class="recent-hits-list" id="recentTokenHits">
+          <div class="recent-hit-item">
+            <div class="hit-query">等待数据...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中间：神经元扭力图 -->
+  <div class="hud-panel neuron-panel fade-in">
+    <div class="panel-header">
+      <span class="panel-title"><span class="icon">[NEU]</span> 神经元网络</span>
+      <span class="panel-badge" id="neuronCount">加载中...</span>
+    </div>
+    <div class="panel-body">
+      <div class="neuron-container" id="neuronContainer">
+        <canvas id="neuronCanvas"></canvas>
+        <div class="neuron-tooltip" id="neuronTooltip">
+          <div class="tooltip-name" id="ttName"></div>
+          <div class="tooltip-stat">生命: <span id="ttLife"></span></div>
+          <div class="tooltip-stat">访问: <span id="ttAccess"></span></div>
+          <div class="tooltip-stat">类型: <span id="ttType"></span></div>
+          <div class="tooltip-tags" id="ttTags"></div>
+        </div>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <!-- 右侧：查询和列表 -->
+  <div class="right-panel fade-in">
+    <!-- 查询面板 -->
+    <div class="hud-panel">
+      <div class="panel-header">
+        <span class="panel-title"><span class="icon">[QRY]</span> 记忆查询</span>
+        <span class="panel-badge" id="queryCount">0 次</span>
+      </div>
+      <div class="panel-body">
+        <div class="query-box">
+          <input type="text" class="query-input" id="queryInput" placeholder="输入查询..." onkeypress="if(event.key==='Enter')executeQuery()">
+          <button class="query-btn" onclick="executeQuery()">查询</button>
+        </div>
+        <div class="result-list" id="queryResults"></div>
+      </div>
+    </div>
+
+    <!-- DNA列表面板 -->
+    <div class="hud-panel" style="flex: 1;">
+      <div class="panel-header">
+        <span class="panel-title"><span class="icon">[DNA]</span> 记忆池</span>
+        <span class="panel-badge" id="dnaListCount">加载中...</span>
+      </div>
+      <div class="panel-body">
+        <div class="dna-list" id="dnaList"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- end deck-dna -->
+
+<!-- 底部HUD -->
+<div class="hud-bottom">
+  <div class="hud-bottom-left" id="bottomLeft">
+    <span>向量引擎: <span id="vecEngineBottom">TF-IDF</span></span>
+    <span>索引: <span id="indexSizeBottom">--</span></span>
+    <span>阈值: <span id="threshold">0.3</span></span>
+  </div>
+  <div class="hud-bottom-right">
+    <span id="bottomDeckLabel">DNA-Strand Neural Interface</span>
+    <span id="bottomTime">--:--:--</span>
+  </div>
+</div>
+
+<script>
+// ============================================
+// DNA-Strand 太空驾驶舱 — 主脚本
+// ============================================
+
+// 全局状态
+let queryCountNum = 0;
+let lastDnaCount = 0;
+let neurons = [];
+let synapses = [];
+let animationId = null;
+
+// API 基础URL
+const API_BASE = '';
+
+// ─── 颜色配置 ─────────────────────────────
+const COLORS = {
+  '暗影幸存者': '#00d4ff',
+  '四川麻将': '#ff00aa',
+  '贪吃蛇': '#00ff88',
+  '塔防保卫战': '#ffbb00',
+  '迷雾之塔': '#8800ff',
+  '修仙': '#ff6600',
+  '苍穹射击': '#00aaff',
+  '象棋翻翻乐': '#ff4488',
+  '像素冒险': '#44ff88',
+  '火柴人格斗': '#ff8844',
+  'Bug修复': '#ff4444',
+  '设计决策': '#8888ff',
+  '流程改进': '#44ffff',
+  '部署发布': '#ffff44',
+  '其他': '#6688aa'
+};
+
+// ─── 获取系统统计 ─────────────────────────
+async function fetchStats() {
+  try {
+    const res = await fetch(`${API_BASE}/api/stats`);
+    const data = await res.json();
+
+    // 更新统计卡片
+    document.getElementById('dnaCount').textContent = data.dna_count || 0;
+    document.getElementById('patternCount').textContent = data.patterns || 0;
+    document.getElementById('storageSize').textContent = data.storage || '0 B';
+
+    // 健康度
+    const health = calculateHealth(data);
+    document.getElementById('healthScore').textContent = `${health}%`;
+    document.getElementById('healthBar').style.width = `${health}%`;
+
+    // 向量引擎（实时数据，无虚假）
+    const vecInfo = data.vector_engine || {};
+    const engineName = vecInfo.use_semantic ? '语义向量' : (vecInfo.model_type || 'TF-IDF Hash');
+    document.getElementById('vectorEngine').textContent = engineName;
+    document.getElementById('indexSize').textContent = vecInfo.index_size || 0;
+    document.getElementById('vecEngineBottom').textContent = vecInfo.use_semantic ? '语义' : 'TF-IDF';
+    document.getElementById('indexSizeBottom').textContent = vecInfo.index_size || 0;
+    document.getElementById('threshold').textContent = data.magnetic_threshold || 0.3;
+
+    // DNA数量变化
+    if (lastDnaCount > 0 && data.dna_count !== lastDnaCount) {
+      const diff = data.dna_count - lastDnaCount;
+      const changeEl = document.getElementById('dnaChange');
+      changeEl.textContent = diff > 0 ? `+${diff} 新增` : `${diff} 减少`;
+      changeEl.style.color = diff > 0 ? 'var(--green)' : 'var(--red)';
+    }
+    lastDnaCount = data.dna_count;
+
+    // 状态指示器
+    document.getElementById('statusDot').style.background = 'var(--green)';
+    document.getElementById('statusText').textContent = 'NEURAL LINK ACTIVE';
+    document.getElementById('statusText').style.color = 'var(--green)';
+
+    return data;
+
+  } catch (err) {
+    document.getElementById('statusDot').style.background = 'var(--red)';
+    document.getElementById('statusText').textContent = 'SERVER OFFLINE';
+    document.getElementById('statusText').style.color = 'var(--red)';
+    // 离线状态显示 -- 而非假数字
+    document.getElementById('dnaCount').textContent = '--';
+    document.getElementById('patternCount').textContent = '--';
+    document.getElementById('storageSize').textContent = '--';
+    document.getElementById('healthScore').textContent = '--%';
+    document.getElementById('vectorEngine').textContent = '离线';
+    return null;
+  }
+}
+
+// 安全设置元素文本（元素不存在时不报错）
+function safeSetText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+function safeSetColor(id, color) {
+  const el = document.getElementById(id);
+  if (el) el.style.color = color;
+}
+
+// Token cache stats
+async function fetchCacheStats() {
+  try {
+    const res = await fetch(API_BASE + '/api/cache-stats');
+    const data = await res.json();
+    const ts = data.token_savings || {};
+    const cache = data.cache || {};
+    const engine = data.engine || {};
+
+    // 实时数据，无不存在的假数字
+    const loadedClusters = cache.loaded_clusters || 0;
+    const estTokens = cache.estimated_cache_tokens || 0;
+    safeSetText('memSavings', estTokens > 0 ? estTokens.toLocaleString() : '--');
+    safeSetText('cacheSavings', estTokens > 0 ? estTokens.toLocaleString() : '--');
+    safeSetText('compressionRatio', cache.hit_rate > 0 ? (cache.hit_rate * 100).toFixed(0) + '%' : '--');
+    safeSetText('cacheEntries', loadedClusters + ' 簇');
+    safeSetText('monthlySavings', ts.estimated_monthly > 1000
+      ? (ts.estimated_monthly / 1000000).toFixed(1) + 'M'
+      : ts.estimated_monthly > 0 ? ts.estimated_monthly.toLocaleString() : '--');
+
+    // 向量引擎
+    safeSetText('semanticEngine', engine.type || 'TF-IDF Hash');
+    safeSetColor('semanticEngine', engine.semantic ? 'var(--green)' : 'var(--cyan)');
+
+    safeSetText('bugCount', (data.intelligence && data.intelligence.total_bugs) || '0');
+    safeSetText('cacheStatus', 'ACTIVE');
+    safeSetColor('cacheStatus', 'var(--green)');
+  } catch (err) {
+    safeSetText('cacheStatus', 'OFFLINE');
+  }
+}
+
+// Token节省实时统计
+async function fetchTokenSavings() {
+  try {
+    const res = await fetch(API_BASE + '/api/token-savings');
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('Token savings error:', data.error);
+      return;
+    }
+
+    const total = data.total || {};
+    const today = data.today || {};
+    const comparison = data.comparison || {};
+    const changes = comparison.changes || {};
+
+    // 更新总计
+    const totalTokens = total.total_saved_tokens || 0;
+    safeSetText('totalSavedTokens',
+      totalTokens > 1000000 ? (totalTokens / 1000000).toFixed(2) + 'M' :
+      totalTokens > 1000 ? (totalTokens / 1000).toFixed(1) + 'K' :
+      totalTokens.toLocaleString());
+
+    safeSetText('totalQueries', (total.total_queries || 0).toLocaleString());
+    safeSetText('totalHits', (total.total_hits || 0).toLocaleString());
+    safeSetText('avgTokensPerQuery', (total.avg_tokens_per_query || 0).toLocaleString());
+
+    // 更新今日统计
+    const todayTokens = today.tokens || 0;
+    safeSetText('todaySavedTokens',
+      todayTokens > 1000000 ? (todayTokens / 1000000).toFixed(2) + 'M' :
+      todayTokens > 1000 ? (todayTokens / 1000).toFixed(1) + 'K' :
+      todayTokens.toLocaleString());
+
+    safeSetText('todayQueries', (today.queries || 0).toLocaleString());
+    safeSetText('todayHits', (today.hits || 0).toLocaleString());
+
+    // 更新变化指标
+    updateChangeIndicator('tokenChange', changes.tokens || 0);
+    updateChangeIndicator('queryChange', changes.queries || 0);
+    updateChangeIndicator('hitChange', changes.hits || 0);
+
+    // 更新状态
+    safeSetText('tokenTrackerStatus', '实时追踪中');
+    safeSetColor('tokenTrackerStatus', 'var(--green)');
+
+  } catch (err) {
+    console.error('Token savings fetch error:', err);
+    safeSetText('tokenTrackerStatus', '离线');
+    safeSetColor('tokenTrackerStatus', 'var(--red)');
+  }
+}
+
+// 更新变化指示器
+function updateChangeIndicator(elementId, changePercent) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  if (changePercent > 0) {
+    el.textContent = `+${changePercent.toFixed(1)}%`;
+    el.style.color = 'var(--green)';
+  } else if (changePercent < 0) {
+    el.textContent = `${changePercent.toFixed(1)}%`;
+    el.style.color = 'var(--red)';
+  } else {
+    el.textContent = '0%';
+    el.style.color = 'var(--text-dim)';
+  }
+}
+
+// 最近Token节省记录
+async function fetchRecentTokenHits() {
+  try {
+    const res = await fetch(API_BASE + '/api/token-savings/recent?limit=5');
+    const data = await res.json();
+
+    if (data.error || !data.recent_hits) return;
+
+    const container = document.getElementById('recentTokenHits');
+    if (!container) return;
+
+    container.innerHTML = data.recent_hits.map(hit => `
+      <div class="recent-hit-item">
+        <div class="hit-query">${escapeHtml(hit.query || '')}</div>
+        <div class="hit-stats">
+          <span class="hit-count">${hit.hit_count || 0} 命中</span>
+          <span class="hit-tokens">+${(hit.saved_tokens || 0).toLocaleString()} tokens</span>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    console.error('Recent token hits fetch error:', err);
+  }
+}
+
+// HTML转义
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ─── 计算健康度（基于实际系统指标）────────
+function calculateHealth(stats) {
+  // 基础分：有数据就有40分
+  let score = 40;
+
+  const dnaCount = stats.dna_count || 0;
+  const patterns = stats.patterns || 0;
+  const vecInfo = stats.vector_engine || {};
+  const brainStats = stats.brain || {};
+  const brainPool = brainStats.pool || {};
+  const clusterStats = stats.semantic_cluster || {};
+
+  // 向量索引覆盖率（最多+20）
+  const indexSize = vecInfo.index_size || 0;
+  if (dnaCount > 0) {
+    const coverage = indexSize / dnaCount;
+    if (coverage >= 0.9) score += 20;
+    else if (coverage >= 0.5) score += 12;
+    else score += 5;
+  }
+
+  // 大脑池健康度（最多+20）
+  const poolTotal = brainStats.pool_total || 0;
+  if (poolTotal > 0) {
+    const protectCount = (brainPool.protect || {}).count || 0;
+    const settleCount = (brainPool.settle || {}).count || 0;
+    const stableRatio = (protectCount + settleCount) / poolTotal;
+    if (stableRatio > 0.3) score += 20;
+    else if (stableRatio > 0.1) score += 12;
+    else score += 5;
+  }
+
+  // 聚类已构建（最多+10）
+  if (clusterStats.built) score += 10;
+
+  // 有模式（最多+10）
+  if (patterns > 50) score += 10;
+  else if (patterns > 10) score += 7;
+  else if (patterns > 0) score += 4;
+
+  return Math.min(100, score);
+}
+
+// ─── 获取DNA列表 ─────────────────────────
+async function fetchDnaList() {
+  try {
+    const res = await fetch(`${API_BASE}/api/dna-list`);
+    const data = await res.json();
+
+    document.getElementById('dnaListCount').textContent = `${data.dnas.length} / ${data.total}`;
+    document.getElementById('neuronCount').textContent = `${data.total} 神经元`;
+
+    // 更新DNA列表
+    const listEl = document.getElementById('dnaList');
+    listEl.innerHTML = '';
+
+    data.dnas.slice(0, 50).forEach(dna => {
+      const item = document.createElement('div');
+      item.className = 'dna-item';
+
+      const tagsHtml = (dna.tags || []).slice(0, 3).map(tag =>
+        `<span class="dna-tag">${escapeHtml(tag)}</span>`
+      ).join('');
+
+      item.innerHTML = `
+        <div class="dna-header">
+          <span class="dna-id">${dna.id}</span>
+          <span class="dna-lifetime">L:${dna.lifetime}</span>
+        </div>
+        <div class="dna-tags">${tagsHtml}</div>
+        <div class="dna-preview">${escapeHtml(dna.content_preview || '')}</div>
+      `;
+
+      listEl.appendChild(item);
+    });
+
+    return data;
+
+  } catch (err) {
+    console.error('获取DNA列表失败:', err);
+    return null;
+  }
+}
+
+// ─── 执行查询 ─────────────────────────────
+async function executeQuery() {
+  const input = document.getElementById('queryInput');
+  const query = input.value.trim();
+  if (!query) return;
+
+  queryCountNum++;
+  document.getElementById('queryCount').textContent = `${queryCountNum} 次`;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/query?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    const resultsDiv = document.getElementById('queryResults');
+    resultsDiv.innerHTML = '';
+
+    if (data.results && data.results.length > 0) {
+      data.results.forEach(result => {
+        const item = document.createElement('div');
+        item.className = 'result-item';
+
+        const content = result.content || {};
+        const type = result.type || 'data';
+        const typeName = type === 'pattern' ? '洞察' : '数据';
+        const typeClass = type === 'pattern' ? 'pattern' : 'data';
+
+        let contentText = '';
+        if (typeof content === 'object') {
+          contentText = content.pattern_name || content.text || content.summary || JSON.stringify(content).substring(0, 80);
+        } else {
+          contentText = String(content).substring(0, 80);
+        }
+
+        item.innerHTML = `
+          <div class="result-header">
+            <span class="result-type ${typeClass}">${typeName}</span>
+            <span class="result-id">${result.dna_id || ''}</span>
+          </div>
+          <div class="result-content">${escapeHtml(contentText)}</div>
+        `;
+
+        item.onclick = () => {
+          // 高亮对应的神经元
+          highlightNeuron(result.dna_id);
+        };
+
+        resultsDiv.appendChild(item);
+      });
+    } else {
+      resultsDiv.innerHTML = '<div class="result-item"><div class="result-content" style="color: var(--text-muted);">无结果</div></div>';
+    }
+
+  } catch (err) {
+    console.error('查询失败:', err);
+  }
+}
+
+// ─── 高亮神经元 ───────────────────────────
+function highlightNeuron(dnaId) {
+  const neuron = neurons.find(n => n.id === dnaId);
+  if (neuron) {
+    neuron.highlighted = true;
+    setTimeout(() => { neuron.highlighted = false; }, 2000);
+  }
+}
+
+// ─── HTML转义 ─────────────────────────────
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ─── 更新时间 ─────────────────────────────
+function updateTime() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById('hudTime').textContent = timeStr;
+  document.getElementById('bottomTime').textContent = timeStr;
+}
+
+// ─── 神经元扭力图 ─────────────────────────
+function initNeuronGraph(dnaData) {
+  const canvas = document.getElementById('neuronCanvas');
+  const container = document.getElementById('neuronContainer');
+  const ctx = canvas.getContext('2d');
+  const tooltip = document.getElementById('neuronTooltip');
+
+  const dpr = window.devicePixelRatio || 1;
+  let width, height;
+
+  function resize() {
+    const rect = container.getBoundingClientRect();
+    width = Math.max(300, Math.floor(rect.width));
+    height = Math.max(400, Math.floor(rect.height));
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+  }
+  resize();
+
+  // 构建神经元
+  const maxLife = dnaData.reduce((m, d) => Math.max(m, d.lifetime || 0), 1);
+
+  neurons = dnaData.map((d, i) => {
+    const lifeNorm = (d.lifetime || 0) / maxLife;
+    const baseR = 6 + lifeNorm * 12;
+    const color = getNeuronColor(d.tags);
+
+    return {
+      id: d.id,
+      x: width / 2 + (Math.random() - 0.5) * width * 0.6,
+      y: height / 2 + (Math.random() - 0.5) * height * 0.5,
+      vx: 0,
+      vy: 0,
+      baseRadius: baseR,
+      radius: baseR,
+      health: lifeNorm,
+      lifetime: d.lifetime || 0,
+      accessCount: d.access_count || 0,
+      type: d.type || 'data',
+      tags: d.tags || [],
+      label: (d.content_preview || d.id || '').slice(0, 25),
+      color: color,
+      highlighted: false,
+      phase: i * 0.5
+    };
+  });
+
+  // 构建突触（相似度连接）
+  synapses = [];
+  const SIM_THRESHOLD = 0.4;
+
+  for (let i = 0; i < neurons.length; i++) {
+    for (let j = i + 1; j < neurons.length; j++) {
+      // 基于标签相似度
+      const tags1 = new Set(neurons[i].tags);
+      const tags2 = new Set(neurons[j].tags);
+      const intersection = [...tags1].filter(t => tags2.has(t));
+      const union = new Set([...tags1, ...tags2]);
+      const sim = union.size > 0 ? intersection.length / union.size : 0;
+
+      if (sim >= SIM_THRESHOLD) {
+        synapses.push({
+          source: i,
+          target: j,
+          similarity: sim,
+          signalPos: Math.random(),
+          signalSpeed: 0.01 + Math.random() * 0.02
+        });
+      }
+    }
+  }
+
+  // 力导向布局 — 调高斥力让节点更疏散，加密度感
+  const REP = 1500;
+  const ATT = 0.005;
+  const DAMP = 0.85;
+  const MIN_DIST = 35;
+  const ITERATIONS = 120;
+
+  for (let iter = 0; iter < ITERATIONS; iter++) {
+    // 排斥力
+    for (let i = 0; i < neurons.length; i++) {
+      for (let j = i + 1; j < neurons.length; j++) {
+        const dx = neurons[j].x - neurons[i].x;
+        const dy = neurons[j].y - neurons[i].y;
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        const force = REP / (dist * dist);
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        neurons[i].vx -= fx;
+        neurons[i].vy -= fy;
+        neurons[j].vx += fx;
+        neurons[j].vy += fy;
+      }
+    }
+
+    // 吸引力
+    for (const s of synapses) {
+      const na = neurons[s.source];
+      const nb = neurons[s.target];
+      const dx = nb.x - na.x;
+      const dy = nb.y - na.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > MIN_DIST) {
+        const pull = (dist - MIN_DIST) * 0.002 * s.similarity;
+        na.vx += (dx / dist) * pull;
+        na.vy += (dy / dist) * pull;
+        nb.vx -= (dx / dist) * pull;
+        nb.vy -= (dy / dist) * pull;
+      }
+    }
+
+    // 中心引力
+    for (const n of neurons) {
+      n.vx += (width / 2 - n.x) * ATT;
+      n.vy += (height / 2 - n.y) * ATT;
+    }
+
+    // 应用速度
+    for (const n of neurons) {
+      n.vx *= DAMP;
+      n.vy *= DAMP;
+      n.x += n.vx;
+      n.y += n.vy;
+      const margin = n.baseRadius + 15;
+      n.x = Math.max(margin, Math.min(width - margin, n.x));
+      n.y = Math.max(margin, Math.min(height - margin, n.y));
+    }
+  }
+
+  // 重置速度
+  for (const n of neurons) {
+    n.vx = 0;
+    n.vy = 0;
+  }
+
+  // 交互状态
+  let hoverNeuron = null;
+
+  // 鼠标事件
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    hoverNeuron = null;
+    for (const n of neurons) {
+      const dx = mx - n.x;
+      const dy = my - n.y;
+      if (dx * dx + dy * dy < n.radius * n.radius) {
+        hoverNeuron = n;
+        break;
+      }
+    }
+
+    if (hoverNeuron) {
+      canvas.style.cursor = 'pointer';
+      tooltip.classList.add('visible');
+      tooltip.style.left = (mx + 15) + 'px';
+      tooltip.style.top = (my - 10) + 'px';
+
+      document.getElementById('ttName').textContent = hoverNeuron.label;
+      document.getElementById('ttLife').textContent = hoverNeuron.lifetime.toFixed(1);
+      document.getElementById('ttAccess').textContent = hoverNeuron.accessCount;
+      document.getElementById('ttType').textContent = hoverNeuron.type;
+
+      const tagsEl = document.getElementById('ttTags');
+      tagsEl.innerHTML = hoverNeuron.tags.slice(0, 5).map(t =>
+        `<span class="tooltip-tag">${t}</span>`
+      ).join('');
+    } else {
+      canvas.style.cursor = 'default';
+      tooltip.classList.remove('visible');
+    }
+  });
+
+  // 渲染循环
+  function render() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    const t = Date.now() / 1000;
+
+    // 背景：深空
+    const bg = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) * 0.6);
+    bg.addColorStop(0, 'rgba(12, 15, 30, 1)');
+    bg.addColorStop(0.5, 'rgba(8, 10, 25, 1)');
+    bg.addColorStop(1, 'rgba(5, 5, 15, 1)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+
+    // 网格背景
+    ctx.strokeStyle = 'rgba(0, 200, 255, 0.015)';
+    ctx.lineWidth = 0.5;
+    for (let y = 0; y < height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    for (let x = 0; x < width; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    // 中心光晕
+    const vg = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) * 0.4);
+    vg.addColorStop(0, 'rgba(0, 200, 255, 0.03)');
+    vg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, width, height);
+
+    // 绘制突触
+    for (const s of synapses) {
+      const na = neurons[s.source];
+      const nb = neurons[s.target];
+      const isHighlighted = na.highlighted || nb.highlighted;
+
+      ctx.beginPath();
+      ctx.moveTo(na.x, na.y);
+      ctx.lineTo(nb.x, nb.y);
+      ctx.strokeStyle = isHighlighted
+        ? `rgba(0, 255, 136, ${0.5 + s.similarity * 0.4})`
+        : `rgba(0, 200, 255, ${0.08 + s.similarity * 0.18})`;
+      ctx.lineWidth = isHighlighted ? 1.5 : 0.7 + s.similarity * 0.8;
+      ctx.stroke();
+
+      // 信号粒子
+      s.signalPos = (s.signalPos + s.signalSpeed) % 1;
+      const sx = na.x + (nb.x - na.x) * s.signalPos;
+      const sy = na.y + (nb.y - na.y) * s.signalPos;
+
+      ctx.beginPath();
+      ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+      ctx.fillStyle = isHighlighted
+        ? 'rgba(0, 255, 136, 0.9)'
+        : `rgba(0, 230, 255, ${0.4 + s.similarity * 0.4})`;
+      ctx.fill();
+    }
+
+    // 绘制神经元
+    for (const n of neurons) {
+      const pulse = Math.sin(t * 2 + n.phase) * 0.15 + 1;
+      const r = n.baseRadius * pulse;
+      const isHover = n === hoverNeuron;
+      const isHighlight = n.highlighted;
+
+      // 外发光 — 加 shadowBlur 让节点自带辉光
+      ctx.save();
+      ctx.shadowColor = n.color;
+      ctx.shadowBlur = isHover || isHighlight ? 18 : 10;
+      const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r * 3);
+      glow.addColorStop(0, isHighlight
+        ? 'rgba(0, 255, 136, 0.25)'
+        : `${n.color}55`);
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 内核
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = isHighlight
+        ? 'rgba(0, 255, 136, 0.9)'
+        : isHover
+          ? `${n.color}ee`
+          : `${n.color}88`;
+      ctx.fill();
+
+      // 边框
+      ctx.strokeStyle = isHighlight
+        ? 'rgba(0, 255, 136, 0.8)'
+        : isHover
+          ? `${n.color}ff`
+          : `${n.color}44`;
+      ctx.lineWidth = isHover ? 2 : 1;
+      ctx.stroke();
+
+      // 高亮环
+      if (isHover || isHighlight) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
+        ctx.strokeStyle = isHighlight
+          ? 'rgba(0, 255, 136, 0.4)'
+          : `${n.color}44`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    animationId = requestAnimationFrame(render);
+  }
+
+  render();
+
+  // 窗口大小变化
+  window.addEventListener('resize', () => {
+    resize();
+    // 重新布局
+    for (const n of neurons) {
+      n.x = Math.max(n.baseRadius + 15, Math.min(width - n.baseRadius - 15, n.x));
+      n.y = Math.max(n.baseRadius + 15, Math.min(height - n.baseRadius - 15, n.y));
+    }
+  });
+}
+
+// ─── 获取神经元颜色 ───────────────────────
+// 8 色调色板 + 哈希回退：让未匹配的标签也五彩斑斓
+const NEURON_PALETTE = [
+  '#ff4466', '#ff8800', '#ffcc00', '#88ff44',
+  '#00e8ff', '#4488ff', '#aa66ff', '#ff44aa'
+];
+
+function hashString(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h) + s.charCodeAt(i);
+    h = h & 0xffffffff;
+  }
+  return Math.abs(h);
+}
+
+function getNeuronColor(tags) {
+  // 1) 优先匹配 COLORS 字典里的明确标签
+  for (const tag of tags) {
+    for (const [key, color] of Object.entries(COLORS)) {
+      if (tag.includes(key) || key.includes(tag)) {
+        return color;
+      }
+    }
+  }
+  // 2) 回退：用 tags 拼接字符串哈希 → 8 色调色板
+  const seed = tags.join('|') || 'unknown';
+  return NEURON_PALETTE[hashString(seed) % NEURON_PALETTE.length];
+}
+
+// ─── 更新图例 ─────────────────────────────
+function updateLegend() {
+  const legendEl = document.getElementById('legend');
+  legendEl.innerHTML = '';
+
+  const usedColors = new Set();
+  for (const n of neurons) {
+    usedColors.add(n.color);
+  }
+
+  for (const [name, color] of Object.entries(COLORS)) {
+    if (usedColors.has(color)) {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = `
+        <span class="legend-dot" style="background: ${color}; box-shadow: 0 0 6px ${color}44;"></span>
+        <span>${name}</span>
+      `;
+      legendEl.appendChild(item);
+    }
+  }
+}
+
+// ─── 初始化 ───────────────────────────────
+async function init() {
+  const startTime = performance.now();
+
+  // 加载数据
+  const [stats, cacheData, dnaData] = await Promise.all([
+    fetchStats(),
+    fetchCacheStats(),
+    fetchDnaList(),
+    fetchTokenSavings(),
+    fetchRecentTokenHits()
+  ]);
+
+  // 计算启动时间
+  const bootTime = ((performance.now() - startTime) / 1000).toFixed(2);
+  document.getElementById('bootTime').textContent = `${bootTime}s`;
+
+  // 初始化神经元图
+  if (dnaData && dnaData.dnas) {
+    initNeuronGraph(dnaData.dnas);
+    updateLegend();
+  }
+
+  // 定时刷新
+  setInterval(fetchStats, 5000);
+  setInterval(fetchCacheStats, 10000);
+  setInterval(fetchDnaList, 15000);
+  setInterval(fetchTokenSavings, 3000);  // Token节省每3秒刷新
+  setInterval(fetchRecentTokenHits, 10000);  // 最近命中每10秒刷新
+  setInterval(updateTime, 1000);
+
+  updateTime();
+}
+
+// 启动（带错误捕获）
+init().catch(err => {
+  console.error('仪表盘初始化失败:', err);
+  document.getElementById('statusDot').style.background = 'var(--red)';
+  document.getElementById('statusText').textContent = 'INIT ERROR: ' + err.message;
+  document.getElementById('statusText').style.color = 'var(--red)';
+});
+
+</script>
+
+</body>
+</html>

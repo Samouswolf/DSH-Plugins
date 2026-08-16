@@ -1,0 +1,12 @@
+{
+  "name": "dsh-dna",
+  "version": "0.1.0",
+  "description": "DNA memory system plugin for DSH: tools + auto-sediment + MOA debate + sync",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./package.json": "./package.json"
+  },
+  "license": "MIT"
+}

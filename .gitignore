@@ -1,0 +1,49 @@
+# ─── 私密 / 凭据 ─────────────────────────────
+*.env
+.env*
+**/*.key
+*.pem
+*.p12
+.secrets*/
+credentials*
+config.local.*
+# 禁止任何 sk- 开头的 key 进入仓库
+*sk-*
+
+# ─── 个人记忆 / 运行时数据（绝不入库）──────
+.dna/
+**/.dna/
+*.json.bak
+fix_log*.json
+*.log
+memory_watcher*
+# 生成产物（如 Agnes 生成的图片）
+**/output/
+assets/generated/
+assets/history/
+
+# ─── Python 缓存 ─────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+
+# ─── 本地 Agent 配置 / 凭证引用 ──────────────
+.hermes/
+.claude/
+.codex/
+.workbuddy/
+AppData/
+
+# ─── 构建产物 ────────────────────────────────
+node_modules/
+dist/
+build/
+*.local
+
+# ─── IDE / OS ────────────────────────────────
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+*.swp
+*~

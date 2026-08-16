@@ -1,0 +1,94 @@
+{
+  "templates": [
+    {
+      "id": "globalAlpha-reset",
+      "pattern": ["globalAlpha", "透明度", "opacity", "render", "draw", "ctx.alpha"],
+      "bug": "Canvas globalAlpha/compositeOperation 未重置导致渲染残留",
+      "fix": "操作前 ctx.save()，操作后 ctx.restore()；或操作后显式设置 ctx.globalAlpha = 1.0",
+      "code": "ctx.save();\ntry {\n  ctx.globalAlpha = 0.5;\n  // ... draw operations ...\n} finally {\n  ctx.restore();\n}",
+      "severity": "high",
+      "hit_count": 21
+    },
+    {
+      "id": "hitThisFrame-double",
+      "pattern": ["collision", "碰撞", "hitbox", "hitThisFrame", "overlap"],
+      "bug": "碰撞检测双重判定——同帧触发多次伤害/得分",
+      "fix": "使用 hitThisFrame 标志位，每帧只在第一次碰撞时处理，帧末重置",
+      "code": "if (!enemy.hitThisFrame && checkCollision(player, enemy)) {\n  enemy.hitThisFrame = true;\n  // 处理碰撞逻辑\n}\n// 帧末重置\nfunction endFrame() {\n  enemies.forEach(e => e.hitThisFrame = false);\n}",
+      "severity": "high",
+      "hit_count": 3
+    },
+    {
+      "id": "timer-leak",
+      "pattern": ["setInterval", "setTimeout", "timer", "计时器", "定时器"],
+      "bug": "定时器未清理导致内存泄漏/重复执行",
+      "fix": "存储定时器 ID，在游戏结束/重启/页面卸载时 clearInterval/clearTimeout",
+      "code": "let timers = [];\nfunction addTimer(fn, ms) {\n  const id = setInterval(fn, ms);\n  timers.push(id);\n  return id;\n}\nfunction clearAllTimers() {\n  timers.forEach(id => clearInterval(id));\n  timers = [];\n}\n// 在 gameOver/restart 时调用 clearAllTimers()",
+      "severity": "high",
+      "hit_count": 8
+    },
+    {
+      "id": "state-reset",
+      "pattern": ["state", "状态", "reset", "reset", "restart", "重新开始"],
+      "bug": "游戏重启时状态变量未完全重置，残留上一局数据",
+      "fix": "创建 initState() 函数集中管理初始状态，restart 时调用 initState()",
+      "code": "const INITIAL_STATE = { score: 0, level: 1, lives: 3 };\nlet state;\nfunction initState() {\n  state = JSON.parse(JSON.stringify(INITIAL_STATE));\n}\nfunction restart() {\n  initState();\n  // 其他重置...\n}",
+      "severity": "medium",
+      "hit_count": 49
+    },
+    {
+      "id": "canvas-resize-ad",
+      "pattern": ["resize", "canvas", "width", "height", "广告", "ad"],
+      "bug": "Canvas resize 未扣除广告栏高度(80px)，导致画面被遮挡",
+      "fix": "canvas.height = window.innerHeight - 80（广告栏高度）",
+      "code": "function resizeCanvas() {\n  const adHeight = document.querySelector('.ad-banner')?.offsetHeight || 80;\n  canvas.width = window.innerWidth;\n  canvas.height = window.innerHeight - adHeight;\n}",
+      "severity": "medium",
+      "hit_count": 5
+    },
+    {
+      "id": "particle-limit",
+      "pattern": ["particle", "粒子", "particles", "spawn"],
+      "bug": "粒子无数量上限，大量生成导致性能崩溃",
+      "fix": "设置 MAX_PARTICLES 上限，超出时移除最旧的粒子",
+      "code": "const MAX_PARTICLES = 200;\nfunction spawnParticle(x, y) {\n  if (particles.length >= MAX_PARTICLES) {\n    particles.shift(); // 移除最旧的\n  }\n  particles.push(new Particle(x, y));\n}",
+      "severity": "medium",
+      "hit_count": 3
+    },
+    {
+      "id": "math-random-in-draw",
+      "pattern": ["Math.random()", "draw", "render", "random"],
+      "bug": "Math.random() 放在 draw/render 函数中，每帧生成不同随机值导致闪烁",
+      "fix": "将随机值生成移到 init/spawn 阶段，draw 只读取预生成的值",
+      "code": "// 错误: function draw() { x = Math.random() * width; }\n// 正确:\nfunction init() {\n  this.x = Math.random() * width; // spawn时生成\n}\nfunction draw() {\n  ctx.fillRect(this.x, this.y, ...); // draw只读取\n}",
+      "severity": "low",
+      "hit_count": 2
+    },
+    {
+      "id": "touch-event-missing",
+      "pattern": ["touch", "触屏", "click", "mobile", "手机"],
+      "bug": "只监听 click 事件，移动端触屏无响应",
+      "fix": "同时监听 touchstart/touchmove/touchend 并 preventDefault 防双击",
+      "code": "canvas.addEventListener('touchstart', handleStart, { passive: false });\ncanvas.addEventListener('touchmove', handleMove, { passive: false });\ncanvas.addEventListener('touchend', handleEnd);\n// 所有 handler 中调用 e.preventDefault() 防止页面滚动",
+      "severity": "high",
+      "hit_count": 44
+    },
+    {
+      "id": "ad-component-missing",
+      "pattern": ["ad", "广告", "sponsor", "banner", "interstitial"],
+      "bug": "缺少4个广告组件之一，部署检查不通过",
+      "fix": "确保 HTML 中包含: sponsor-btn, sponsor-panel, ad-banner, interstitial-ad",
+      "code": "<!-- 必须包含以下4个广告组件 -->\n<div id=\"sponsor-btn\" class=\"sponsor-btn\"></div>\n<div id=\"sponsor-panel\" class=\"sponsor-panel\"></div>\n<div id=\"ad-banner\" class=\"ad-banner\"></div>\n<div id=\"interstitial-ad\" class=\"interstitial-ad\"></div>",
+      "severity": "high",
+      "hit_count": 10
+    },
+    {
+      "id": "mobile-viewport",
+      "pattern": ["375", "mobile", "viewport", "响应式", "适配"],
+      "bug": "移动端最小宽度 375px 未适配，小屏手机布局错乱",
+      "fix": "viewport meta + CSS min-width: 375px + Canvas 自适应缩放",
+      "code": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, minimum-scale=1.0\">\n<style>\nbody { min-width: 375px; }\ncanvas { max-width: 100%; height: auto; }\n</style>",
+      "severity": "medium",
+      "hit_count": 15
+    }
+  ]
+}
