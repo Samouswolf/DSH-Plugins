@@ -1,0 +1,15 @@
+# Agent preset 挂载片段示例
+# 放入你的 agent.cordis.yml（或你使用的 preset 文件）。
+# 请把 <工作区> 换成你实际的插件目录父路径。
+
+# ── DNA 记忆系统 ──
+- id: dsh-dna
+  name: 'file:///<工作区>/dna-plugin/index.mjs'
+
+# ── Agent 农场 ──
+- id: agent-farm
+  name: 'file:///<工作区>/agent-farm/index.mjs'
+
+# ── 进化引擎 ──
+- id: evolution-engine
+  name: 'file:///<工作区>/evolution-engine/index.mjs'

@@ -71,6 +71,17 @@ Chinese docs: [`docs/INSTALL.md`](docs/INSTALL.md) · [`docs/CAVEATS.md`](docs/C
 
 > Without a key the corresponding feature degrades to "unavailable / skipped" and does not block the other plugins from starting.
 
+## 🎯 Examples
+
+Quickest way to see how it works:
+
+| Example | Contents |
+|---------|----------|
+| [`agent-preset-snippet.yml`](examples/agent-preset-snippet.yml) | Minimal mount snippet (copy & paste) |
+| [`dna-quick-usage.md`](examples/dna-quick-usage.md) | DNA memory tool usage in conversation |
+| [`agent-farm-usage.md`](examples/agent-farm-usage.md) | Agent Farm usage + key dependencies |
+| [`evolution-skill-example.md`](examples/evolution-skill-example.md) | memory → skill persistence walkthrough |
+
 ## Security / Privacy
 
 - This repository has **zero sensitive content**: no personal memory, no business data, no local paths, no hard-coded keys.

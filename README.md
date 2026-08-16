@@ -40,6 +40,31 @@ DSH-Plugins/
 └── LICENSE            # MIT
 ```
 
+## 🧭 架构总览
+
+```mermaid
+flowchart TB
+    subgraph DSH["DeepSeek Harness"]
+        A[Agent preset<br/>agent.cordis.yml] -->|挂载 file:///| DNA[DNA 记忆系统]
+        A -->|挂载| FARM[Agent 农场]
+        A -->|挂载| EVO[进化引擎]
+    end
+
+    DNA -->|召回/沉淀/辩证/同步| MEM[(本地记忆库<br/>~/.dna)]
+    DNA -->|调用桥接| PYBR[Python 桥接<br/>dna_bridge + dna_system]
+
+    FARM -->|探测/派活| LOCAL[本地 Agent<br/>Hermes · WorkBuddy · Claude · Codex · Agnes]
+    FARM -->|HTTP 看板| WEB[浏览器<br/>/api/farm]
+
+    EVO -->|复盘| MEM
+    EVO -->|固化技能| SKILL[(技能库<br/>.skills/SKILL.md)]
+
+    style DSH fill:#6d28d9,color:#fff
+    style DNA fill:#f59e0b,color:#000
+    style FARM fill:#2563eb,color:#fff
+    style EVO fill:#059669,color:#fff
+```
+
 ## 🚀 快速开始
 
 ```bash
@@ -75,6 +100,17 @@ DSH-Plugins/
 | Agent 农场 · Claude/Codex 走中转 | Opencode 中转 key（`OPENCODE_API_KEY`） |
 
 > 没有 key 时对应功能自动降级为「不可用 / 跳过」，不会阻止其他插件启动。
+
+## 🎯 示例 / Examples
+
+看实际用法最快的方式：
+
+| 示例 | 内容 |
+|------|------|
+| [`agent-preset-snippet.yml`](examples/agent-preset-snippet.yml) | 最小挂载片段（复制即用） |
+| [`dna-quick-usage.md`](examples/dna-quick-usage.md) | DNA 记忆工具对话用法 |
+| [`agent-farm-usage.md`](examples/agent-farm-usage.md) | Agent 农场对话用法 + Key 依赖 |
+| [`evolution-skill-example.md`](examples/evolution-skill-example.md) | 记忆 → 技能固化完整流程 |
 
 ## 📚 文档
 
