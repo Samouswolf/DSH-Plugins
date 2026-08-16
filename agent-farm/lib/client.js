@@ -62,8 +62,10 @@ window.__ModuleLoader__.load({
       .afarm-task-input:focus { border-color: var(--color-accent, #888); }
       .afarm-task-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
       .afarm-task-model { flex: 1; min-width: 0; font-size: 11px; color: inherit; background: rgba(255,255,255,.04); border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
-      .afarm-task-size { flex-shrink: 0; font-size: 11px; color: inherit; background: rgba(255,255,255,.04); border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
-      .afarm-model-select { flex-shrink: 1; max-width: 150px; font-size: 11px; color: inherit; background: rgba(255,255,255,.04); border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
+      .afarm-task-size { flex-shrink: 0; font-size: 11px; color: #fff; background: #1e1e1e; border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
+      .afarm-task-size option { background: #1e1e1e; color: #fff; }
+      .afarm-model-select { flex-shrink: 1; max-width: 150px; font-size: 11px; color: #fff; background: #1e1e1e; border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
+      .afarm-model-select option { background: #1e1e1e; color: #fff; }
       .afarm-task-run { cursor: pointer; border: 1px solid var(--color-border, #444); background: transparent; color: inherit; border-radius: 6px; padding: 4px 12px; font-size: 12px; flex-shrink: 0; }
       .afarm-task-run:disabled { opacity: .5; cursor: not-allowed; }
       .afarm-task-run:not(:disabled):hover { border-color: var(--color-accent, #888); }
