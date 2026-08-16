@@ -38,6 +38,31 @@
 > ⚠️ 本项目不包含任何密钥。`farm-opencode.mjs` / `farm-agnes.mjs` 只从环境变量或外部配置文件读取凭据。
 > 若 Hermes 使用，`farm-hermes.py` 还会读取 `HERMES_ENV` 指向的 `.env` 获取模型路由。
 
+## 🎚️ 模型选择
+
+每个 agent 派活时**可以指定模型**，两种方式：
+
+**方式一 · 看板下拉（推荐）**
+打开浏览器里的 Agent 农场看板，选中某 agent 后，对话输入区会出现**模型下拉框**，直接点选要用的模型即可。
+
+**方式二 · 对话里指定**
+调用 `farm_call` 时传 `model` 参数：
+```
+farm_call(agent="agnes", task="...", model="agnes-image-2.1-flash")
+```
+
+**各 agent 的可选模型与默认：**
+
+| Agent | 可选模型 | 默认 |
+|-------|---------|------|
+| **WorkBuddy** | hy3、glm-5.2、glm-5.1、glm-5v-turbo、minimax-m3、kimi-*、deepseek-v4-flash、deepseek-v4-pro | `hy3` |
+| **Hermes** | deepseek-v4-flash、deepseek-v4-pro | `deepseek-v4-flash` |
+| **Claude / Codex** | deepseek-v4-flash、deepseek-v4-pro（走 Opencode 中转） | `deepseek-v4-flash` |
+| **Agnes** | agnes-2.0-flash、agnes-2.5-*、agnes-image-2.1-flash、agnes-video-v2.0 | `agnes-2.0-flash` |
+
+> WorkBuddy 的下拉优先使用从 `models.json` 读到的**真实可用清单**；读取失败时才回退到上表默认值。
+> 若你在看板里指定了模型，该 model 会随派活请求透传到底层桥接；不选就使用该 agent 的默认模型。
+
 ## 关联
 
 - `smart-hub` / `agent-team` 与农场是同一生态的协作入口，可一并部署。
