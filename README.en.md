@@ -1,10 +1,19 @@
 # DSH Plugins
 
+<div align="center">
+  
+![License-MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![Language-JavaScript/Python](https://img.shields.io/badge/Language-JS%2FPython-blue.svg)
+![Zero-Sensitive](https://img.shields.io/badge/Privacy-Zero%20Sensitive-brightgreen.svg)
+![DSH-Ready](https://img.shields.io/badge/DeepSeek%20Harness-Ready-8b5cf6.svg)
+
+**中文**: [中文版](README.md)
+  
+</div>
+
 Custom plugins for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/dsh) that bring Hermes-style DNA memory, a multi-agent farm, and capability evolution into DSH.
 
 > ⚠️ **Security statement**: this repository contains **no personal memory data, no API keys, and no machine-specific paths**. All credentials are injected via environment variables / config files. Do not commit `.env`, any key, or `.dna/` data here.
-
-**Language**: [中文](README.md) · English
 
 ---
 
@@ -46,6 +55,9 @@ Custom plugins for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/dsh) 
 |-----|----------|
 | [**Install & Config**](docs/INSTALL.en.md) | Prerequisites, per-plugin install steps, full env-var tables, verification |
 | [**Caveats**](docs/CAVEATS.en.md) | Security boundaries, privacy, common pitfalls, troubleshooting |
+| [Security](SECURITY.md) | reporting vulnerabilities / key-leak handling |
+| [Contributing](CONTRIBUTING.md) | how to contribute |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | community guidelines |
 
 Chinese docs: [`docs/INSTALL.md`](docs/INSTALL.md) · [`docs/CAVEATS.md`](docs/CAVEATS.md)
 
