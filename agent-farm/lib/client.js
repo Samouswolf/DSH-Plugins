@@ -63,6 +63,7 @@ window.__ModuleLoader__.load({
       .afarm-task-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
       .afarm-task-model { flex: 1; min-width: 0; font-size: 11px; color: inherit; background: rgba(255,255,255,.04); border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
       .afarm-task-size { flex-shrink: 0; font-size: 11px; color: inherit; background: rgba(255,255,255,.04); border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
+      .afarm-model-select { flex-shrink: 1; max-width: 150px; font-size: 11px; color: inherit; background: rgba(255,255,255,.04); border: 1px solid var(--color-border, #444); border-radius: 6px; padding: 4px 8px; outline: none; }
       .afarm-task-run { cursor: pointer; border: 1px solid var(--color-border, #444); background: transparent; color: inherit; border-radius: 6px; padding: 4px 12px; font-size: 12px; flex-shrink: 0; }
       .afarm-task-run:disabled { opacity: .5; cursor: not-allowed; }
       .afarm-task-run:not(:disabled):hover { border-color: var(--color-accent, #888); }
@@ -198,6 +199,9 @@ window.__ModuleLoader__.load({
 			const [mode, setMode] = React.useState("chat");
 			const [size, setSize] = React.useState("square");
 			const [roleOpen, setRoleOpen] = React.useState(false);
+			// 当前 agent 的模型选择（切换 agent 时重置为默认）
+			const [chosenModel, setChosenModel] = React.useState(null);
+			React.useEffect(() => { setChosenModel(null); }, [active]);
 			// 慢 agent（如 Hermes 十几秒）的等待反馈：记录发送时刻 + 每秒耗时
 			const [sendAt, setSendAt] = React.useState(0);
 			const [elapsed, setElapsed] = React.useState(0);
@@ -243,7 +247,7 @@ window.__ModuleLoader__.load({
 				const t = input.trim();
 				if (!active || !t || isSending) return;
 				const now = new Date().toLocaleTimeString();
-				const payload = { agent: active, task: t, mode: mode };
+				const payload = { agent: active, task: t, mode: mode, model: (chosenModel || (cur && cur.defaultModel) || "") };
 				if (mode === "image") payload.size = size;
 				setSessions((s) => Object.assign({}, s, { [active]: (s[active] || []).concat([{ role: "user", text: t, ts: now, mode: mode }]) }));
 				setInput("");
@@ -327,6 +331,9 @@ window.__ModuleLoader__.load({
 									}),
 									canGen && mode === "image" ? React.createElement("select", { className: "afarm-task-size", value: size, onChange: (e) => setSize(e.target.value) },
 										React.createElement("option", { value: "square" }, "方图"), React.createElement("option", { value: "landscape" }, "横图"), React.createElement("option", { value: "portrait" }, "竖图"),
+									) : null,
+									cur && Array.isArray(cur.modelOptions) && cur.modelOptions.length ? React.createElement("select", { className: "afarm-model-select", title: "选择派活的模型", value: chosenModel || cur.defaultModel || "", onChange: (e) => setChosenModel(e.target.value) },
+										cur.modelOptions.map((m) => React.createElement("option", { key: m, value: m }, m)),
 									) : null,
 									React.createElement("button", { className: "afarm-chat-send", disabled: !cur || !input.trim() || isSending, onClick: send }, isSending ? "…" : "发送"),
 								),

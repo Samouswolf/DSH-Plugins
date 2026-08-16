@@ -632,19 +632,28 @@ export const apply = (ctx) => {
     } catch (e) { return { err: String(e && e.message ? e.message : e) } }
   }
 
+  // ── 各 Agent 的可选模型清单（供看板下拉；cbc/Hermes 等以运行时可探测的实际值为准）──
+  const AGENT_MODELS = {
+    workbuddy: ['hy3', 'glm-5.2', 'glm-5.1', 'glm-5v-turbo', 'minimax-m3', 'kimi-k3-1', 'kimi-k2.7', 'kimi-k2.6', 'deepseek-v4-flash', 'deepseek-v4-pro'],
+    hermes: ['deepseek-v4-flash', 'deepseek-v4-pro'],
+    claude: ['deepseek-v4-flash', 'deepseek-v4-pro'],
+    codex: ['deepseek-v4-flash', 'deepseek-v4-pro'],
+    agnes: ['agnes-2.0-flash', 'agnes-2.5-flash', 'agnes-2.5-pro', 'agnes-image-2.0-flash', 'agnes-image-2.1-flash', 'agnes-video-v2.0'],
+  }
+
   async function farmStatus(light) {
     const agents = {}
     {
       const cli = await pathExists(ctx, PATHS.workbuddy.cli)
       const models = await pathExists(ctx, PATHS.workbuddy.modelsJson)
       const modelList = light ? [] : await readWorkbuddyModels()
-      agents.workbuddy = { label: PATHS.workbuddy.label, available: cli === true, headless: true, cliExists: cli === true, modelsJsonExists: models === true, models: modelList, icon: light ? null : await iconDataUrl(PATHS.assets.workbuddy, 'image/png'), accent: '#2563eb', accent2: '#1d4ed8', note: cli === true ? 'codebuddy CLI 存在，headless 可用' : 'codebuddy CLI 不可访问' }
+      agents.workbuddy = { label: PATHS.workbuddy.label, available: cli === true, headless: true, cliExists: cli === true, modelsJsonExists: models === true, models: modelList, modelOptions: Array.isArray(modelList) && modelList.length ? modelList : AGENT_MODELS.workbuddy, defaultModel: 'hy3', icon: light ? null : await iconDataUrl(PATHS.assets.workbuddy, 'image/png'), accent: '#2563eb', accent2: '#1d4ed8', note: cli === true ? 'codebuddy CLI 存在，headless 可用' : 'codebuddy CLI 不可访问' }
     }
     {
       const venv = await pathExists(ctx, PATHS.hermes.venv)
       const cli = await pathExists(ctx, PATHS.hermes.cli)
       const env = await pathExists(ctx, PATHS.hermes.env)
-      const hermes = { label: PATHS.hermes.label, available: venv === true && cli === true && env === true, headless: true, venvPython: venv === true, cli: cli === true, envFile: env === true, icon: light ? null : await iconDataUrl(PATHS.assets.hermes, 'image/png'), accent: '#8b5cf6', accent2: '#6d28d9' }
+      const hermes = { label: PATHS.hermes.label, available: venv === true && cli === true && env === true, headless: true, venvPython: venv === true, cli: cli === true, envFile: env === true, modelOptions: AGENT_MODELS.hermes, defaultModel: 'deepseek-v4-flash', icon: light ? null : await iconDataUrl(PATHS.assets.hermes, 'image/png'), accent: '#8b5cf6', accent2: '#6d28d9' }
       if (!light && venv === true && (await pathExists(ctx, PATHS.hermes.statusScript))) {
         const r = await probeHermes()
         if (r.data) {
@@ -669,7 +678,7 @@ export const apply = (ctx) => {
       const dir = await pathExists(ctx, PATHS.claude.dir)
       const settings = await pathExists(ctx, PATHS.claude.settings)
       const version = light || exe !== true ? '' : await probeVersion(PATHS.claude.exe, ['--version'])
-      agents.claude = { label: PATHS.claude.label, available: exe === true && dir === true, headless: true, version: version, cliExists: exe === true, dirExists: dir === true, settingsExists: settings === true, defaultModel: 'deepseek-v4-flash', icon: light ? null : await iconDataUrl(PATHS.assets.claude, 'image/png'), accent: '#d97757', accent2: '#b45309', note: '模型走 Opencode 中转（免费 deepseek-v4-flash），不消耗官方配额' }
+      agents.claude = { label: PATHS.claude.label, available: exe === true && dir === true, headless: true, version: version, cliExists: exe === true, dirExists: dir === true, settingsExists: settings === true, defaultModel: 'deepseek-v4-flash', modelOptions: AGENT_MODELS.claude, icon: light ? null : await iconDataUrl(PATHS.assets.claude, 'image/png'), accent: '#d97757', accent2: '#b45309', note: '模型走 Opencode 中转（免费 deepseek-v4-flash），不消耗官方配额' }
     }
     {
       const js = await pathExists(ctx, PATHS.codex.js)
@@ -678,7 +687,7 @@ export const apply = (ctx) => {
       authOk = !!authText && authText.indexOf('OPENAI_API_KEY') >= 0
       const config = await pathExists(ctx, PATHS.codex.config)
       const version = light || js !== true ? '' : await probeVersion(PATHS.codex.js, ['--version'])
-      agents.codex = { label: PATHS.codex.label, available: js === true && authOk === true, headless: true, version: version, cliExists: js === true, authOk: authOk, configExists: config === true, defaultModel: 'deepseek-v4-flash', icon: light ? null : await iconDataUrl(PATHS.assets.codex, 'image/png'), accent: '#10a37f', accent2: '#0e7490', note: '模型走 Opencode 中转（免费 deepseek-v4-flash）' }
+      agents.codex = { label: PATHS.codex.label, available: js === true && authOk === true, headless: true, version: version, cliExists: js === true, authOk: authOk, configExists: config === true, defaultModel: 'deepseek-v4-flash', modelOptions: AGENT_MODELS.codex, icon: light ? null : await iconDataUrl(PATHS.assets.codex, 'image/png'), accent: '#10a37f', accent2: '#0e7490', note: '模型走 Opencode 中转（免费 deepseek-v4-flash）' }
     }
     {
       const core = await pathExists(ctx, PATHS.agnes.core)
@@ -686,7 +695,7 @@ export const apply = (ctx) => {
       const envText = await readTextOrNull(PATHS.agnes.hermesEnv)
       const keyOk = !!envText && envText.indexOf('AGNES_API_KEY=') >= 0
       const version = light || core !== true ? '' : await probeVersion(PATHS.agnes.core, ['--version'])
-      agents.agnes = { label: PATHS.agnes.label, available: core === true && dir === true, headless: false, apiReady: keyOk === true, coreVersion: version, configDirExists: dir === true, apiUrl: 'https://apihub.agnes-ai.com/v1', icon: light ? null : await iconDataUrl(PATHS.assets.agnes, 'image/png'), accent: '#f472b6', accent2: '#db2777', note: '云通道来自 Hermes 配置（apihub.agnes-ai.com，AGNES_API_KEY），支持对话/生图/生视频，免费限速 20/min' }
+      agents.agnes = { label: PATHS.agnes.label, available: core === true && dir === true, headless: false, apiReady: keyOk === true, coreVersion: version, configDirExists: dir === true, apiUrl: 'https://apihub.agnes-ai.com/v1', modelOptions: AGENT_MODELS.agnes, defaultModel: 'agnes-2.0-flash', icon: light ? null : await iconDataUrl(PATHS.assets.agnes, 'image/png'), accent: '#f472b6', accent2: '#db2777', note: '云通道来自 Hermes 配置（apihub.agnes-ai.com，AGNES_API_KEY），支持对话/生图/生视频，免费限速 20/min' }
     }
     const anyOk = Object.values(agents).some((a) => a.available)
     return { ok: true, note: anyOk ? '本机 Agent 农场：WorkBuddy / Hermes / Trae / Claude Code / Codex / Agnes。' : '当前没有可被 DSH 调用的本地 Agent。', agents }
