@@ -2,6 +2,8 @@
 
 适用于 [DeepSeek Harness](https://github.com/deepseek-ai/dsh) 的自定义插件合集，把 Hermes 式的「DNA 记忆 + 多 Agent 农场 + 能力进化」能力带入 DSH。
 
+**Language**: 中文 · [English](README.en.md)
+
 > ⚠️ **安全声明**：本仓库**不含任何个人记忆数据、API 密钥或本机私有路径**。所有凭据均通过环境变量 / 配置文件注入。请勿向本仓库提交 `.env`、任何 key 或 `.dna/` 数据。
 
 ---
