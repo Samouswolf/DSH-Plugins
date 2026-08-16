@@ -21,7 +21,7 @@ import json
 import time
 import os
 from typing import Dict, List, Optional, Set
-from .brain_encoder import extract_dna, encode_game_memory
+from .brain_encoder import extract_dna
 
 
 # ════════════════════════════════════════════════════════════
@@ -447,34 +447,3 @@ class BrainPool:
             )
 
         return pool
-
-
-# ════════════════════════════════════════════════════════════
-# 测试/调试
-# ════════════════════════════════════════════════════════════
-
-if __name__ == "__main__":
-    pool = BrainPool()
-
-    # 添加记忆
-    pool.add("bug-001", "贪吃蛇碰撞检测Bug：自碰判定有误", energy=0.6)
-    pool.add("bug-002", "塔防炮塔升级逻辑错误", energy=0.4)
-    pool.add("rule-001", "只编辑games/src/tests/下的源文件", energy=1.0, pinned=True)
-
-    # 添加热层记忆
-    pool.add_hot("当前正在修复碰撞检测")
-
-    # 统计
-    print("=== 四层记忆池 ===")
-    print(f"总数: {pool.count()}")
-    stats = pool.layer_stats()
-    for layer, info in stats.items():
-        print(f"  {layer}: {info['count']}条, 平均能量{info['avg_energy']}")
-
-    # 保存/加载测试
-    pool.save("test_pool.json")
-    pool2 = BrainPool.load("test_pool.json")
-    print(f"\n加载后: {pool2.count()}条")
-
-    # 清理
-    os.remove("test_pool.json")

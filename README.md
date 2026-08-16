@@ -14,12 +14,12 @@
 
 ## 快速开始
 
-1. 把要用的插件目录拷入你的 DSH 工作区（如 `D:/DSH/<plugin>/`）。
+1. 把要用的插件目录拷入你的 DSH 工作区（如 `<工作区>/<plugin>/`）。
 2. 在 agent preset（如 `agent.cordis.yml`）里按需引用，例如：
 
    ```yaml
    - id: dsh-dna
-     name: 'file:///D:/DSH/dna-plugin/index.mjs'
+     name: 'file:///<工作区>/dna-plugin/index.mjs'
    ```
 
 3. 根据需要创建本地配置，各插件读取的路径/凭据见其目录内 `config.example` 说明。

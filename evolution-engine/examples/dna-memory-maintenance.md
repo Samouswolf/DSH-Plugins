@@ -15,7 +15,7 @@ version: 1.0.0
 - 规划一条经验的能量值与层级
 
 ## 记忆结构
-- 主库：`~/.hermes/`（Hermes 风格）；DSH 副本：`D:/DSH/.dna/brain_pool.json`
+- 主库：`~/.hermes/`（Hermes 风格）；工作副本：`<工作区>/.dna/brain_pool.json`
 - 每条记忆含：`text` / `energy`(0~1) / `pinned` / `layer` / `dna(domain,intent)` / `access_count` 等
 - 层级：`hot`(高频热度，当前无=0) / `settle`(沉淀经验) / `protect`(置顶铁律) / `cold`(冷记忆)
 

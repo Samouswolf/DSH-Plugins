@@ -130,7 +130,7 @@ export const apply = (ctx) => {
     },
     {
       name: 'dna_debate',
-      description: '运行 MOA 多模型辩证：保守派/激进派/综合者 三个角色围绕议题真实调用 LLM 辩证，输出最终决策。适合重大架构决策、方案评审、风险分析。key 自动从 ~/.hermes/.env 读取。',
+      description: '运行 MOA 多模型辩证：保守派/激进派/综合者 三个角色围绕议题真实调用 LLM 辩证，输出最终决策。适合重大架构决策、方案评审、风险分析。key 自动从环境变量或 Hermes 配置 .env 读取。',
       parameters: {
         type: 'object',
         properties: {

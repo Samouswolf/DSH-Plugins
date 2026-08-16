@@ -367,7 +367,7 @@ window.__ModuleLoader__.load({
 			return React.createElement("div", { className: "afarm-task", onClick: (e) => e.stopPropagation() },
 				React.createElement("div", { className: "afarm-task-label" }, "📤 给 " + props.agentLabel + " 派任务（自然语言）"),
 				modes.length > 1 ? React.createElement("div", { className: "afarm-modes" }, modes.map((md) => React.createElement("button", { key: md, className: "afarm-mode-btn" + (mode === md ? " on" : ""), onClick: () => setMode(md) }, MODE_LABELS[md] || md))) : null,
-				React.createElement("textarea", { className: "afarm-task-input", placeholder: mode === "image" ? "描述你想生成的图片…（如：赛博朋克城市夜景，霓虹灯）" : mode === "video" ? "描述你想生成的视频…" : "例：帮我扫描 D:/DSH 目录下最近修改的 3 个文件并总结改动", value: text, onChange: (e) => setText(e.target.value) }),
+				React.createElement("textarea", { className: "afarm-task-input", placeholder: mode === "image" ? "描述你想生成的图片…（如：赛博朋克城市夜景，霓虹灯）" : mode === "video" ? "描述你想生成的视频…" : "例：帮我扫描项目目录下最近修改的 3 个文件并总结改动", value: text, onChange: (e) => setText(e.target.value) }),
 				React.createElement("div", { className: "afarm-task-bar" },
 					React.createElement("input", { className: "afarm-task-model", placeholder: props.modelHint ? "模型（默认 " + props.modelHint + "）" : "模型（可选）", value: model, onChange: (e) => setModel(e.target.value) }),
 					mode === "image" ? React.createElement("select", { className: "afarm-task-size", value: size, onChange: (e) => setSize(e.target.value) }, React.createElement("option", { value: "square" }, "方图"), React.createElement("option", { value: "landscape" }, "横图"), React.createElement("option", { value: "portrait" }, "竖图")) : null,

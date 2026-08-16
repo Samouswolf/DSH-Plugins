@@ -204,79 +204,6 @@ def extract_dna(text: str) -> Dict[str, List[str]]:
 
 
 # ════════════════════════════════════════════════════════════
-# 游戏工坊专用：游戏DNA编码
-# ════════════════════════════════════════════════════════════
-
-# 游戏名称映射
-_GAME_ALIASES = {
-    "暗影幸存者": ["割草", "survivor", "幸存者", "暗影"],
-    "四川麻将": ["麻将", "mahjong", "血战", "川麻"],
-    "迷雾之塔": ["迷雾之塔", "misty", "爬塔", "迷雾"],
-    "塔防保卫战": ["塔防", "td", "塔防保卫战", "tower"],
-    "贪吃蛇大作战": ["贪吃蛇", "snake", "蛇"],
-    "修仙": ["修仙", "xian", "练气", "筑基"],
-    "苍穹射击": ["苍穹射击", "shooter", "射击"],
-    "象棋翻翻乐": ["象棋翻翻乐", "chess-flip", "翻翻乐"],
-    "像素冒险": ["平台跳跃", "platformer", "像素冒险"],
-    "火柴人格斗": ["火柴人格斗", "fighter", "格斗"],
-}
-
-# 系统关键词
-_SYSTEM_KEYWORDS = {
-    "渲染": ["渲染", "draw", "sprite", "图片", "显示", "画", "图层", "粒子", "particle"],
-    "碰撞": ["碰撞", "collision", "判定", "hitbox", "hit", "穿透", "重叠"],
-    "逻辑": ["逻辑", "计算", "规则", "算法", "判断", "条件", "状态机"],
-    "UI": ["UI", "ui", "界面", "按钮", "弹窗", "菜单", "面板", "panel", "btn"],
-    "音频": ["音频", "声音", "音效", "音乐", "sound", "audio", "sfx"],
-    "物理": ["物理", "physics", "重力", "跳跃", "速度", "加速度"],
-}
-
-
-def identify_game(text: str) -> str:
-    """从文本中识别游戏名称"""
-    text_lower = text.lower()
-    for game, aliases in _GAME_ALIASES.items():
-        for alias in aliases:
-            if alias.lower() in text_lower:
-                return game
-    return ""
-
-
-def identify_system(text: str) -> str:
-    """从文本中识别涉及的系统"""
-    text_lower = text.lower()
-    for system, keywords in _SYSTEM_KEYWORDS.items():
-        for kw in keywords:
-            if kw.lower() in text_lower:
-                return system
-    return ""
-
-
-def encode_game_memory(text: str) -> Dict[str, List[str]]:
-    """
-    为游戏工坊记忆编码DNA。
-    在标准DNA基础上，增加游戏和系统识别。
-    """
-    dna = extract_dna(text)
-
-    # 识别游戏
-    game = identify_game(text)
-    if game:
-        dna["entity"].append(f"game:{game}")
-
-    # 识别系统
-    system = identify_system(text)
-    if system:
-        dna["domain"].append(f"system:{system}")
-
-    # 去重排序
-    for key in dna:
-        dna[key] = sorted(set(dna[key]))
-
-    return dna
-
-
-# ════════════════════════════════════════════════════════════
 # TF-IDF 向量编码器（语义聚类专用）
 # ════════════════════════════════════════════════════════════
 
@@ -371,24 +298,3 @@ class TFIDFEncoder:
         if corpus and not self._built:
             self.build_idf(corpus)
         return self.encode(text)
-
-
-# ════════════════════════════════════════════════════════════
-# 测试/调试
-# ════════════════════════════════════════════════════════════
-
-if __name__ == "__main__":
-    # 测试用例
-    test_cases = [
-        "帮我修复贪吃蛇碰撞检测",
-        "塔防保卫战的炮塔升级逻辑有Bug",
-        "deploy database timeout set 30 seconds",
-        "修仙游戏的渡劫系统怎么实现？",
-    ]
-
-    for text in test_cases:
-        print(f"\n输入: {text}")
-        dna = extract_dna(text)
-        print(f"DNA: {dna}")
-        print(f"游戏: {identify_game(text)}")
-        print(f"系统: {identify_system(text)}")

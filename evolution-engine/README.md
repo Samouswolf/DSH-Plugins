@@ -21,7 +21,7 @@
 
 ```yaml
 - id: evolution-engine
-  name: 'file:///D:/DSH/evolution-engine/index.mjs'
+  name: 'file:///<工作区>/evolution-engine/index.mjs'
 ```
 
 ## 配置（环境变量）

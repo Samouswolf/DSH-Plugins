@@ -1,68 +1,28 @@
 """
-DNA-Strand 记忆系统 v3.0
+🧠 DNA-Strand 记忆系统 — 通用联想大脑核心
 
-一个完整的AI Agent记忆生态系统，支持:
-- 向量索引加速查询
-- 智能标签自动提取
-- 内容质量过滤
-- 访问反馈追踪
-- 定期维护优化
-- 自动记录机制
-- 太空驾驶舱仪表盘
-- 脑形神经元网络
-- 自动窗口（最小化/关闭）
+零模型依赖的记忆系统：从文本固有结构提取 DNA 信号，用坐标共振匹配相关记忆，
+四层记忆池按生命周期自动晋升/淘汰。支持磁吸匹配、虫洞展开、多模型辩证。
+
+本包是「通用向量/联想记忆核心」，不绑定任何业务垂直领域。
 
 使用方法:
-    from dna_system import DNASystem
+    from dna_system.core.brain import Brain
 
-    # 初始化系统（自动显示状态窗口）
-    system = DNASystem()
-
-    # 查询记忆
-    results = system.query("暗影幸存者")
-
-    # 带反馈的查询
-    results, query_id = system.query_with_feedback("贪吃蛇")
-    system.mark_result_used(query_id, results[0]["dna_id"])
-
-    # 摄入新记忆
-    system.ingest("path/to/file.md")
-    system.ingest("新记忆内容", tags=["标签1", "标签2"])
-
-    # 进化
-    system.evolve()
-
-    # 维护
-    system.run_maintenance()
-    system.get_quality_report()
-
-    # 自动记录
-    system.auto_commit()
-    system.auto_session("会话摘要")
-    system.auto_snapshot()
-
-    # 打开仪表盘窗口
-    system.open_window()  # 阻塞，支持最小化/关闭
-    system.open_browser() # 非阻塞，在浏览器中打开
+    brain = Brain(memory_dir=".dna")
+    brain.load()
+    brain.add("id-1", "碰撞检测Bug", energy=0.6)
+    results = brain.recall("碰撞", top_k=5)
 """
 
-__version__ = "3.0.0"
-__author__ = "小德"
+__version__ = "3.1.0"
 
-from .system import DNASystem
-from .core.dna import DNA, DNAType, StrandType
-from .core.smart_tagger import SmartTagger
-from .core.quality_filter import QualityFilter
-from .core.access_tracker import AccessTracker
-from .core.maintenance import MaintenanceEngine
+from .core.brain import Brain, get_brain, recall, check, add
 
 __all__ = [
-    "DNASystem",
-    "DNA",
-    "DNAType",
-    "StrandType",
-    "SmartTagger",
-    "QualityFilter",
-    "AccessTracker",
-    "MaintenanceEngine",
+    "Brain",
+    "get_brain",
+    "recall",
+    "check",
+    "add",
 ]

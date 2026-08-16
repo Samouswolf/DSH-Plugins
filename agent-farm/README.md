@@ -13,11 +13,11 @@
 
 ## 安装
 
-把本目录放入工作区（如 `D:/DSH/agent-farm`），在 agent preset（`agent.cordis.yml`）里挂载：
+把本目录放入工作区（如 `<工作区>/agent-farm`），在 agent preset（`agent.cordis.yml`）里挂载：
 
 ```yaml
 - id: agent-farm
-  name: 'file:///D:/DSH/agent-farm/index.mjs'
+  name: 'file:///<工作区>/agent-farm/index.mjs'
 ```
 
 ## 配置（环境变量）

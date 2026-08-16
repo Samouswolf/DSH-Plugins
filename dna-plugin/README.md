@@ -15,7 +15,7 @@
 
 ```yaml
 - id: dsh-dna
-  name: 'file:///D:/DSH/dna-plugin/index.mjs'
+  name: 'file:///<工作区>/dna-plugin/index.mjs'
 ```
 
 并确保 Python 可用，`dna_bridge/` 与 `dna-plugin/` 同级。

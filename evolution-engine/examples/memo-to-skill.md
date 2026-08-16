@@ -20,7 +20,7 @@ version: 1.0.0
 3. 写 SKILL.md：
    - frontmatter：`name`（kebab-case）+ `description`（做什么、何时用）+ `version`
    - 正文：`## 用途` / `## 何时使用` / `## 操作步骤` / `## 检查清单`
-4. 落盘到 `D:/DSH/.skills/<name>/SKILL.md`。
+4. 落盘到 `<技能目录>/<name>/SKILL.md`。
 5. 若在对话框执行：用 `evolution_engine` 工具落盘并动态注册（即时生效）。
 
 ## 检查清单

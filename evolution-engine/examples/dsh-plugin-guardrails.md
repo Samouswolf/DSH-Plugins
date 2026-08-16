@@ -16,7 +16,7 @@ version: 1.0.0
 ## 铁律一：生命周期认知
 - **动态插件**（create 后 run）：进程内临时，重启消失，需重装；适合临时实验、本次会话内生效。
 - **文件插件**（file:///absolute/index.mjs 挂进 preset agent.cordis.yml）：重启常驻；UI/工具要长期使用必须固化为此形态。
-- 固化流程：`D:/DSH/<plugin>/index.mjs` 双半包（host+client），prest 里加一行 `file:///` 引用。完整流程见记忆"DSH动态UI插件固化为文件插件"。
+- 固化流程：`<工作区>/<plugin>/index.mjs` 双半包（host+client），preset 里加一行 `file:///` 引用。
 
 ## 铁律二：工具注册面（关键）
 - **动态插件**要用 `harness.registerTool(ctx, tool)` / `harness.defineTool` 注册模型工具，才能对当前 Agent 可见。

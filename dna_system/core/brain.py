@@ -9,7 +9,7 @@
 使用方式：
   brain = Brain()
   brain.load("memory.json")
-  results = brain.recall("贪吃蛇碰撞")
+  results = brain.recall("碰撞检测")
   brain.add("bug-001", "碰撞检测Bug", energy=0.6)
 """
 
@@ -17,10 +17,10 @@ from __future__ import annotations
 import os
 import time
 from typing import Dict, List, Optional
-from .brain_encoder import extract_dna, encode_game_memory, identify_game, identify_system
-from .brain_resonance import magnetic_resonance, cross_game_resonance, compute_idf
+from .brain_encoder import extract_dna
+from .brain_resonance import magnetic_resonance, compute_idf
 from .brain_pool import BrainPool, MemoryEntity
-from .brain_wormhole import wormhole_expand, smart_wormhole_expand, game_wormhole_expand
+from .brain_wormhole import wormhole_expand, smart_wormhole_expand
 
 
 # ════════════════════════════════════════════════════════════
@@ -115,7 +115,7 @@ class Brain:
         # 虫洞展开
         if enable_wormhole and matches:
             seeds = matches[:3]
-            expanded = game_wormhole_expand(
+            expanded = smart_wormhole_expand(
                 seeds, entity_dicts, query,
                 max_hops=wormhole_hops, max_expansions=top_k * 2,
             )
@@ -160,8 +160,6 @@ class Brain:
         return {
             "query": query,
             "query_dna": query_dna,
-            "game": identify_game(query),
-            "system": identify_system(query),
             "matches": matches,
         }
 
@@ -195,30 +193,3 @@ def check(context: str) -> List:
 def add(eid: str, text: str, **kwargs) -> MemoryEntity:
     """快捷添加"""
     return get_brain().add(eid, text, **kwargs)
-
-
-# ════════════════════════════════════════════════════════════
-# 测试/调试
-# ════════════════════════════════════════════════════════════
-
-if __name__ == "__main__":
-    brain = Brain(memory_dir="test_brain")
-
-    print("=== 添加记忆 ===")
-    brain.add("bug-001", "贪吃蛇碰撞检测Bug：自碰判定有误", energy=0.6)
-    brain.add("bug-002", "贪吃蛇食物生成位置异常", energy=0.5)
-    brain.add("bug-003", "塔防炮塔碰撞范围错误", energy=0.4)
-    brain.add("bug-004", "火柴人格斗hitbox偏移", energy=0.5)
-
-    print("\n=== 被动联想 ===")
-    results = brain.recall("碰撞检测", top_k=3)
-    for r in results:
-        print(f"  [{r.get('_score', 0):.4f}] {r['id']}: {r['text'][:50]}")
-
-    print("\n=== 统计 ===")
-    print(brain.stats())
-
-    brain.save()
-    import shutil
-    if os.path.exists("test_brain"):
-        shutil.rmtree("test_brain")
